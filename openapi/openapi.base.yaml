@@ -1,0 +1,177 @@
+openapi: 3.1.0
+info:
+  title: Universe Federation Open API
+  description: |
+    面向第三方开放应用的公开接口骨架。
+
+    完整接口列表请向目标实例请求：
+      GET /api.json
+
+    鉴权：Authorization: Bearer <access_token>
+    OAuth2：authorization_code + PKCE S256
+  version: "1.0.0"
+  license:
+    name: AGPL-3.0-only
+
+servers:
+  - url: https://example.com
+    description: 替换为你的实例
+
+tags:
+  - name: discovery
+  - name: oauth
+  - name: open-api
+
+paths:
+  /api.json:
+    get:
+      tags: [discovery]
+      summary: 完整 OpenAPI 文档
+      responses:
+        "200":
+          description: OpenAPI 3.1 JSON
+
+  /api-doc:
+    get:
+      tags: [discovery]
+      summary: 人类可读 API 文档页
+      responses:
+        "200":
+          description: HTML
+
+  /.well-known/oauth-authorization-server:
+    get:
+      tags: [discovery, oauth]
+      summary: OAuth 授权服务器元数据
+      responses:
+        "200":
+          description: RFC 8414 风格 JSON
+
+  /oauth/authorize:
+    get:
+      tags: [oauth]
+      summary: 用户授权（需 PKCE S256）
+      parameters:
+        - in: query
+          name: client_id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: response_type
+          required: true
+          schema: { type: string, enum: [code] }
+        - in: query
+          name: redirect_uri
+          schema: { type: string, format: uri }
+        - in: query
+          name: scope
+          schema: { type: string }
+        - in: query
+          name: state
+          schema: { type: string }
+        - in: query
+          name: code_challenge
+          required: true
+          schema: { type: string }
+        - in: query
+          name: code_challenge_method
+          required: true
+          schema: { type: string, enum: [S256] }
+      responses:
+        "302":
+          description: 跳转登录/回调
+
+  /oauth/token:
+    post:
+      tags: [oauth]
+      summary: 授权码换 access_token
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [grant_type, code, client_secret, code_verifier]
+              properties:
+                grant_type: { type: string, enum: [authorization_code] }
+                code: { type: string }
+                client_id: { type: string }
+                client_secret: { type: string }
+                code_verifier: { type: string }
+                redirect_uri: { type: string }
+      responses:
+        "200":
+          description: token 响应
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token: { type: string }
+                  token_type: { type: string, example: Bearer }
+                  scope: { type: string }
+                  created_at: { type: integer }
+
+  /api/meta:
+    post:
+      tags: [open-api]
+      summary: 实例公开信息（可不登录）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                detail: { type: boolean }
+      responses:
+        "200":
+          description: 元数据 JSON
+
+  /api/i:
+    post:
+      tags: [open-api]
+      summary: 当前授权用户
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: 用户资料
+
+  /api/notes/create:
+    post:
+      tags: [open-api]
+      summary: 发帖（需 write:notes）
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string }
+      responses:
+        "200":
+          description: 创建的动态
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: OAuth access_token
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth/authorize
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read:profile: 读资料
+            write:notes: 发帖
+            read:drive: 读网盘
+            write:drive: 写网盘

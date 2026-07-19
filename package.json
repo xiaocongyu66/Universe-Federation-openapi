@@ -1,0 +1,23 @@
+{
+  "name": "universe-federation-openapi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Universe Federation open API docs and multi-language client examples for third-party apps",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "fetch": "node scripts/fetch-openapi.mjs",
+    "validate": "node scripts/validate-openapi.mjs openapi/openapi.base.yaml"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "universe-federation",
+    "misskey",
+    "sharkey",
+    "openapi",
+    "oauth",
+    "api"
+  ]
+}

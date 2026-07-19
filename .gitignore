@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.*
+
+# Live-fetched instance specs (regenerate with scripts/fetch-openapi.mjs)
+openapi/api.*.json
+openapi/oauth-as.*.json
+!openapi/openapi.base.yaml

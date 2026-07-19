@@ -1,0 +1,19 @@
+name: validate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate OpenAPI base
+        run: node scripts/validate-openapi.mjs openapi/openapi.base.yaml
+      - name: Bundle file catalog
+        run: node scripts/bundle-docs.mjs
